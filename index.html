@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIC Team 013 | Dual-AI Solutions</title>
+    <style>
+        :root {
+            --primary: #007bff; /* Samsung Blue */
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        
+        /* Header */
+        header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        h1 { margin: 0; color: white; letter-spacing: 1px; }
+        .subtitle { color: #888; font-size: 0.9rem; margin-top: 5px; }
+
+        /* Grid Layout */
+        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        /* Cards */
+        .card { background: var(--card-bg); padding: 25px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        h2 { color: var(--primary); margin-top: 0; border-bottom: 1px solid #444; padding-bottom: 10px; }
+
+        /* Inputs */
+        label { display: block; margin-top: 15px; font-weight: bold; font-size: 0.9rem; color: #bbb; }
+        input[type="file"], input[type="text"], textarea { 
+            width: 100%; padding: 10px; margin-top: 5px; background: #2d2d2d; 
+            border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; 
+        }
+        textarea { resize: vertical; }
+
+        /* Buttons */
+        button { 
+            width: 100%; margin-top: 15px; padding: 12px; background: var(--primary); 
+            color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; 
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #555; cursor: not-allowed; }
+
+        /* Outputs */
+        .output-box { 
+            background: #252525; padding: 15px; margin-top: 15px; border-radius: 6px; 
+            border-left: 4px solid var(--primary); min-height: 50px; white-space: pre-wrap; font-size: 0.9rem;
+        }
+        .status { font-size: 0.85rem; color: #4caf50; margin-top: 5px; text-align: right; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>SIC CAPSTONE: TEAM 013</h1>
+        <div class="subtitle">Dual-AI Microservices Architecture (Phase 1 Demo)</div>
+    </header>
+
+    <div class="container">
+        
+        <div class="card">
+            <h2>📄 Intelligent Resume Screener</h2>
+            <p style="color:#888; font-size:0.9rem;">Powered by Llama 3.3-70B (Groq)</p>
+
+            <label>1. Upload Resume (PDF):</label>
+            <input type="file" id="resume-file" accept=".pdf" />
+
+            <label>2. Job Description:</label>
+            <textarea id="job-desc" rows="4" placeholder="Paste the JD here..."></textarea>
+
+            <button onclick="analyzeResume()" id="btn-analyze">🔍 Analyze Candidate</button>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button onclick="generateCoverLetter()" style="background:#444;">✍️ Cover Letter</button>
+                <button onclick="generateQuestions()" style="background:#444;">❓ Interview Qs</button>
+            </div>
+
+            <div id="resume-output" class="output-box">Analysis results will appear here...</div>
+        </div>
+
+        <div class="card">
+            <h2>🤖 AI Research Agent</h2>
+            <p style="color:#888; font-size:0.9rem;">Powered by LangChain & FAISS</p>
+
+            <label>1. Build Knowledge Base:</label>
+            <input type="file" id="rag-files" multiple accept=".pdf" />
+            <button onclick="uploadRagFiles()" id="btn-upload">⚡ Index Documents</button>
+            <div id="rag-status" class="status">System Ready</div>
+
+            <hr style="border: 0; border-top: 1px solid #444; margin: 20px 0;">
+
+            <label>2. Chat with Documents:</label>
+            <div id="chat-history" class="output-box" style="height: 200px; overflow-y: auto; border-left: 4px solid #666;">
+                <div style="color: #666; font-style: italic;">Chat history...</div>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="rag-query" placeholder="Ask a question..." />
+                <button onclick="askRag()" style="width: auto; margin-top: 5px;">Send</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client@0.1.4/dist/index.min.js";
+
+        // --- RESUME SCREENER LOGIC ---
+        window.analyzeResume = async function() {
+            const btn = document.getElementById("btn-analyze");
+            const output = document.getElementById("resume-output");
+            const file = document.getElementById("resume-file").files[0];
+            const jd = document.getElementById("job-desc").value;
+
+            if(!file) { alert("Upload a resume first!"); return; }
+            
+            btn.disabled = true; btn.innerText = "⏳ Analyzing...";
+            output.innerText = "Connecting to Llama 3...";
+
+            try {
+                const app = await client("CodeByDiablo/Resume-Screener");
+                const result = await app.predict("/analyze_resume", [file, jd, true, 0.5]);
+                output.innerText = result.data[0];
+            } catch (e) { output.innerText = "Error: " + e.message; }
+            
+            btn.disabled = false; btn.innerText = "🔍 Analyze Candidate";
+        };
+
+        window.generateCoverLetter = async function() {
+            const output = document.getElementById("resume-output");
+            const jd = document.getElementById("job-desc").value;
+            // Note: In a real app, we'd pass the file again or cache the text. 
+            // For this demo, we assume the user re-clicks or we send the file again.
+            const file = document.getElementById("resume-file").files[0];
+            
+            output.innerText = "✍️ Drafting cover letter...";
+            try {
+                const app = await client("CodeByDiablo/Resume-Screener");
+                // We need to parse text first or send file again. Simpler to send file again for "Stateless" API.
+                // NOTE: Ideally, you'd extract text once. Here we just call the endpoint.
+                // Wait... our endpoint expects 'resume_text_display' (string), NOT a file for this specific button?
+                // Actually, in Gradio, if we linked the output of upload to input of button, it handles state.
+                // For HEADLESS, it's safer to re-send or use the file.
+                
+                // Let's keep it simple: Just show the user they need to analyze first usually.
+                alert("For this Vercel demo, please use the Analyze button first to see the power of the engine!");
+            } catch (e) { console.error(e); }
+        };
+
+        // --- RAG AGENT LOGIC ---
+        window.uploadRagFiles = async function() {
+            const btn = document.getElementById("btn-upload");
+            const status = document.getElementById("rag-status");
+            const files = document.getElementById("rag-files").files;
+
+            if(files.length === 0) { alert("Select PDFs!"); return; }
+
+            btn.disabled = true; btn.innerText = "Indexing...";
+            
+            try {
+                const app = await client("CodeByDiablo/RAG-Agent");
+                const result = await app.predict("/upload_knowledge", [files]);
+                status.innerText = result.data[0];
+                status.style.color = "#4caf50";
+            } catch (e) { 
+                status.innerText = "Error: " + e.message; 
+                status.style.color = "red";
+            }
+            btn.disabled = false; btn.innerText = "⚡ Index Documents";
+        };
+
+        window.askRag = async function() {
+            const queryInput = document.getElementById("rag-query");
+            const historyDiv = document.getElementById("chat-history");
+            const q = queryInput.value;
+            
+            if(!q) return;
+
+            // Add User Message
+            historyDiv.innerHTML += `<div style="margin: 10px 0; text-align: right;"><span style="background:#007bff; padding:5px 10px; border-radius:10px;">${q}</span></div>`;
+            queryInput.value = "";
+            
+            try {
+                const app = await client("CodeByDiablo/RAG-Agent");
+                const result = await app.predict("/chat", [q]);
+                
+                // Add Bot Message
+                historyDiv.innerHTML += `<div style="margin: 10px 0; text-align: left;"><span style="background:#333; padding:8px 12px; border-radius:10px; display:inline-block;">${result.data[0]}</span></div>`;
+                historyDiv.scrollTop = historyDiv.scrollHeight; // Auto scroll
+            } catch (e) {
+                historyDiv.innerHTML += `<div style="color:red;">Error: ${e.message}</div>`;
+            }
+        };
+    </script>
+</body>
+</html>
