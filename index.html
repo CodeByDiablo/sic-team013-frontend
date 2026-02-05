@@ -108,7 +108,7 @@
     <script type="module">
         import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client@0.1.4/dist/index.min.js";
 
-        // --- RESUME SCREENER LOGIC (FIXED CHAIN) ---
+        // --- RESUME SCREENER LOGIC ---
         window.analyzeResume = async function() {
             const btn = document.getElementById("btn-analyze");
             const output = document.getElementById("resume-output");
@@ -184,19 +184,24 @@
         window.uploadRagFiles = async function() {
             const btn = document.getElementById("btn-upload");
             const status = document.getElementById("rag-status");
-            const files = document.getElementById("rag-files").files;
+            const fileInput = document.getElementById("rag-files");
 
-            if(files.length === 0) { alert("Select PDFs!"); return; }
+            if(fileInput.files.length === 0) { alert("Select PDFs!"); return; }
 
             btn.disabled = true; btn.innerText = "Indexing...";
             
             try {
                 const app = await client("CodeByDiablo/RAG-Agent");
-                // Note: RAG Agent expects a LIST of files
-                const result = await app.predict("/upload_knowledge", [files]);
+                
+                // FIX: Convert FileList to Array
+                const fileArray = Array.from(fileInput.files);
+                
+                const result = await app.predict("/upload_knowledge", [fileArray]);
+                
                 status.innerText = result.data[0];
                 status.style.color = "#4caf50";
             } catch (e) { 
+                console.error(e);
                 status.innerText = "Error: " + e.message; 
                 status.style.color = "red";
             }
@@ -216,7 +221,6 @@
             
             try {
                 const app = await client("CodeByDiablo/RAG-Agent");
-                // IMPORTANT: /chat endpoint usage
                 const result = await app.predict("/chat", [q]);
                 
                 // Add Bot Message
