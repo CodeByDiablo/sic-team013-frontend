@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIC Team 013 | Capstone Dashboard</title>
     
-    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/4.16.0/gradio.js"></script>
-    
     <style>
         :root {
             --primary: #007bff;
@@ -40,7 +38,7 @@
         }
         .status-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 8px #00ff88; }
 
-        /* Main Layout - Vertical Stack */
+        /* Main Layout */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -57,22 +55,20 @@
             display: flex; align-items: center; gap: 10px;
         }
 
-        /* The App Containers */
-        .app-wrapper {
+        /* The Iframe Container */
+        .iframe-wrapper {
             background: var(--card-bg);
             border: 1px solid #333;
             border-radius: 12px;
-            overflow: hidden; /* Clips the corners */
+            overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            margin-bottom: 60px; /* Space between apps */
-            min-height: 800px; /* Force tall height */
+            margin-bottom: 60px;
+            height: 900px; /* Tall enough for the whole app */
         }
 
-        /* Fix Gradio sizing */
-        gradio-app {
+        iframe {
             width: 100%;
             height: 100%;
-            min-height: 800px; /* Matches wrapper */
             border: none;
         }
 
@@ -119,8 +115,8 @@
             Powered by <strong>Llama 3.3-70B</strong>. Upload a PDF to generate match scores, missing keywords, and interview questions.
         </p>
         
-        <div class="app-wrapper">
-            <gradio-app src="https://codebydiablo-resume-screener.hf.space" theme_mode="dark"></gradio-app>
+        <div class="iframe-wrapper">
+            <iframe src="https://codebydiablo-resume-screener.hf.space" allow="clipboard-write"></iframe>
         </div>
 
         <div class="scroll-hint">▼ Scroll down for Research Agent ▼</div>
@@ -132,8 +128,8 @@
             Powered by <strong>LangChain & FAISS</strong>. Upload technical papers to build a private vector knowledge base.
         </p>
 
-        <div class="app-wrapper">
-            <gradio-app src="https://codebydiablo-rag-agent.hf.space" theme_mode="dark"></gradio-app>
+        <div class="iframe-wrapper">
+            <iframe src="https://codebydiablo-rag-agent.hf.space" allow="clipboard-write"></iframe>
         </div>
 
     </div>
