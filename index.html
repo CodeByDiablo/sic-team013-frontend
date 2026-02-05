@@ -67,7 +67,7 @@
             <input type="file" id="resume-file" accept=".pdf" />
 
             <label>2. Job Description:</label>
-            <textarea id="job-desc" rows="4" placeholder="Paste the JD here..."></textarea>
+            <textarea id="job-desc" rows="4" placeholder="Paste the JD here...">Software Engineer</textarea>
 
             <button onclick="analyzeResume()" id="btn-analyze">🔍 Analyze Candidate</button>
             
@@ -75,6 +75,8 @@
                 <button onclick="generateCoverLetter()" style="background:#444;">✍️ Cover Letter</button>
                 <button onclick="generateQuestions()" style="background:#444;">❓ Interview Qs</button>
             </div>
+
+            <div id="hidden-resume-text" style="display:none;"></div>
 
             <div id="resume-output" class="output-box">Analysis results will appear here...</div>
         </div>
@@ -106,7 +108,7 @@
     <script type="module">
         import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client@0.1.4/dist/index.min.js";
 
-        // --- RESUME SCREENER LOGIC ---
+        // --- RESUME SCREENER LOGIC (FIXED CHAIN) ---
         window.analyzeResume = async function() {
             const btn = document.getElementById("btn-analyze");
             const output = document.getElementById("resume-output");
@@ -115,13 +117,30 @@
 
             if(!file) { alert("Upload a resume first!"); return; }
             
-            btn.disabled = true; btn.innerText = "⏳ Analyzing...";
-            output.innerText = "Connecting to Llama 3...";
+            btn.disabled = true; btn.innerText = "⏳ Extracting Text...";
+            output.innerText = "Step 1: Extracting text from PDF...";
 
             try {
+                // STEP 1: Connect & Upload File to get Text
                 const app = await client("CodeByDiablo/Resume-Screener");
-                const result = await app.predict("/analyze_resume", [file, jd, true, 0.5]);
-                output.innerText = result.data[0];
+                const parseResult = await app.predict("/process_upload", [file]); 
+                const resumeText = parseResult.data[0];
+                
+                // Store text for other buttons
+                document.getElementById("hidden-resume-text").innerText = resumeText;
+
+                // STEP 2: Send Text + JD to Analysis Engine
+                btn.innerText = "⏳ Analyzing with Llama 3...";
+                output.innerText = "Step 2: Reasoning about candidate experience...";
+                
+                const analyzeResult = await app.predict("/analyze_resume", [
+                    resumeText, // The STRING we extracted
+                    jd, 
+                    true, 
+                    0.5
+                ]);
+                output.innerText = analyzeResult.data[0];
+
             } catch (e) { output.innerText = "Error: " + e.message; }
             
             btn.disabled = false; btn.innerText = "🔍 Analyze Candidate";
@@ -130,22 +149,35 @@
         window.generateCoverLetter = async function() {
             const output = document.getElementById("resume-output");
             const jd = document.getElementById("job-desc").value;
-            // Note: In a real app, we'd pass the file again or cache the text. 
-            // For this demo, we assume the user re-clicks or we send the file again.
-            const file = document.getElementById("resume-file").files[0];
+            const resumeText = document.getElementById("hidden-resume-text").innerText;
+
+            if(!resumeText) { alert("Please click 'Analyze Candidate' first to process the PDF!"); return; }
             
             output.innerText = "✍️ Drafting cover letter...";
             try {
                 const app = await client("CodeByDiablo/Resume-Screener");
-                // We need to parse text first or send file again. Simpler to send file again for "Stateless" API.
-                // NOTE: Ideally, you'd extract text once. Here we just call the endpoint.
-                // Wait... our endpoint expects 'resume_text_display' (string), NOT a file for this specific button?
-                // Actually, in Gradio, if we linked the output of upload to input of button, it handles state.
-                // For HEADLESS, it's safer to re-send or use the file.
-                
-                // Let's keep it simple: Just show the user they need to analyze first usually.
-                alert("For this Vercel demo, please use the Analyze button first to see the power of the engine!");
-            } catch (e) { console.error(e); }
+                const result = await app.predict("/generate_cover_letter", [
+                    resumeText, 
+                    jd, 
+                    0.5
+                ]);
+                output.innerText = result.data[0];
+            } catch (e) { output.innerText = "Error: " + e.message; }
+        };
+
+        window.generateQuestions = async function() {
+            const output = document.getElementById("resume-output");
+            const jd = document.getElementById("job-desc").value;
+            
+            output.innerText = "❓ Generating questions...";
+            try {
+                const app = await client("CodeByDiablo/Resume-Screener");
+                const result = await app.predict("/get_questions", [
+                    jd, 
+                    0.5
+                ]);
+                output.innerText = result.data[0];
+            } catch (e) { output.innerText = "Error: " + e.message; }
         };
 
         // --- RAG AGENT LOGIC ---
@@ -160,6 +192,7 @@
             
             try {
                 const app = await client("CodeByDiablo/RAG-Agent");
+                // Note: RAG Agent expects a LIST of files
                 const result = await app.predict("/upload_knowledge", [files]);
                 status.innerText = result.data[0];
                 status.style.color = "#4caf50";
@@ -183,11 +216,12 @@
             
             try {
                 const app = await client("CodeByDiablo/RAG-Agent");
+                // IMPORTANT: /chat endpoint usage
                 const result = await app.predict("/chat", [q]);
                 
                 // Add Bot Message
                 historyDiv.innerHTML += `<div style="margin: 10px 0; text-align: left;"><span style="background:#333; padding:8px 12px; border-radius:10px; display:inline-block;">${result.data[0]}</span></div>`;
-                historyDiv.scrollTop = historyDiv.scrollHeight; // Auto scroll
+                historyDiv.scrollTop = historyDiv.scrollHeight;
             } catch (e) {
                 historyDiv.innerHTML += `<div style="color:red;">Error: ${e.message}</div>`;
             }
