@@ -10,56 +10,93 @@
     <style>
         :root {
             --primary: #007bff;
-            --bg: #0b0f19; /* Deep tech background */
+            --bg: #0b0f19;
             --card-bg: #1a1f2e;
             --text: #e0e0e0;
         }
         body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); }
         
-        /* Header */
+        /* Sticky Header */
         header { 
-            background: linear-gradient(90deg, #000000 0%, #1a1f2e 100%);
-            padding: 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(11, 15, 25, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px; 
+            border-bottom: 1px solid #333; 
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        .logo { font-size: 1.5rem; font-weight: bold; color: white; letter-spacing: 1px; }
-        .tagline { color: var(--primary); font-size: 0.9rem; font-weight: 500; }
-        
-        /* Main Grid */
-        .dashboard-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0; /* Seamless split */
-            height: calc(100vh - 80px); /* Full height minus header */
+        .logo { font-size: 1.5rem; font-weight: bold; color: white; letter-spacing: 1px; text-transform: uppercase; }
+        .sub-logo { font-size: 0.85rem; color: #888; font-weight: normal; margin-top: 2px; }
+        .status-badge { 
+            background: rgba(0, 255, 136, 0.1); 
+            color: #00ff88; 
+            padding: 5px 12px; 
+            border-radius: 20px; 
+            font-size: 0.8rem; 
+            font-weight: bold; 
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            display: flex; align-items: center; gap: 6px;
         }
-        
-        .panel {
+        .status-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 8px #00ff88; }
+
+        /* Main Layout - Vertical Stack */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
-            overflow-y: auto;
-            border-right: 1px solid #333;
         }
 
-        .panel-header {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--primary);
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .section-title {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            margin-top: 40px;
+            border-left: 5px solid var(--primary);
+            padding-left: 15px;
+            display: flex; align-items: center; gap: 10px;
         }
 
-        /* Responsive */
-        @media (max-width: 1000px) {
-            .dashboard-container { grid-template-columns: 1fr; height: auto; }
-            .panel { height: 800px; border-bottom: 5px solid #000; }
+        /* The App Containers */
+        .app-wrapper {
+            background: var(--card-bg);
+            border: 1px solid #333;
+            border-radius: 12px;
+            overflow: hidden; /* Clips the corners */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 60px; /* Space between apps */
+            min-height: 800px; /* Force tall height */
         }
 
-        /* Hides the built-in footer of Gradio apps to make it look native */
+        /* Fix Gradio sizing */
         gradio-app {
-            min-height: 600px;
             width: 100%;
+            height: 100%;
+            min-height: 800px; /* Matches wrapper */
+            border: none;
+        }
+
+        /* Scroll Down Hint */
+        .scroll-hint {
+            text-align: center;
+            color: #666;
+            margin-top: -40px;
+            margin-bottom: 40px;
+            font-size: 0.9rem;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-5px);}
+            60% {transform: translateY(-3px);}
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #555;
+            font-size: 0.9rem;
+            border-top: 1px solid #222;
         }
     </style>
 </head>
@@ -67,29 +104,44 @@
 
     <header>
         <div>
-            <div class="logo">SIC CAPSTONE: TEAM 013</div>
-            <div style="font-size: 0.8rem; color: #888;">Samsung Innovation Campus • Batch 25-26</div>
+            <div class="logo">SIC Team 013</div>
+            <div class="sub-logo">Samsung Innovation Campus • Capstone Phase 1</div>
         </div>
-        <div class="tagline">🟢 SYSTEM ONLINE</div>
+        <div class="status-badge"><div class="status-dot"></div> SYSTEMS ONLINE</div>
     </header>
 
-    <div class="dashboard-container">
+    <div class="container">
+
+        <div class="section-title">
+            <span>📄 Intelligent Resume Screener</span>
+        </div>
+        <p style="color: #aaa; margin-bottom: 20px; padding-left: 5px;">
+            Powered by <strong>Llama 3.3-70B</strong>. Upload a PDF to generate match scores, missing keywords, and interview questions.
+        </p>
         
-        <div class="panel">
-            <div class="panel-header">
-                <span>📄 INTELLIGENT RESUME SCREENER</span>
-            </div>
+        <div class="app-wrapper">
             <gradio-app src="https://codebydiablo-resume-screener.hf.space" theme_mode="dark"></gradio-app>
         </div>
 
-        <div class="panel">
-            <div class="panel-header">
-                <span>🤖 AI RESEARCH AGENT</span>
-            </div>
+        <div class="scroll-hint">▼ Scroll down for Research Agent ▼</div>
+
+        <div class="section-title">
+            <span>🤖 AI Research Agent</span>
+        </div>
+        <p style="color: #aaa; margin-bottom: 20px; padding-left: 5px;">
+            Powered by <strong>LangChain & FAISS</strong>. Upload technical papers to build a private vector knowledge base.
+        </p>
+
+        <div class="app-wrapper">
             <gradio-app src="https://codebydiablo-rag-agent.hf.space" theme_mode="dark"></gradio-app>
         </div>
 
     </div>
+
+    <footer>
+        SIC Capstone Project • Team 013 <br>
+        Developed by Vasamsetti, Devesh, Dhadi, Kovvuri, and Sakshi.
+    </footer>
 
 </body>
 </html>
