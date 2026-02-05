@@ -108,40 +108,48 @@
     <script type="module">
         import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client@0.1.4/dist/index.min.js";
 
+        // --- DIRECT SERVER LINKS (The Fix) ---
+        // We use the direct .hf.space links to bypass redirect/login issues
+        const RESUME_API = "https://codebydiablo-resume-screener.hf.space/";
+        const RAG_API    = "https://codebydiablo-rag-agent.hf.space/";
+
         // --- RESUME SCREENER LOGIC ---
         window.analyzeResume = async function() {
             const btn = document.getElementById("btn-analyze");
             const output = document.getElementById("resume-output");
-            const file = document.getElementById("resume-file").files[0];
+            const fileInput = document.getElementById("resume-file");
             const jd = document.getElementById("job-desc").value;
 
-            if(!file) { alert("Upload a resume first!"); return; }
+            if(fileInput.files.length === 0) { alert("Upload a resume first!"); return; }
             
-            btn.disabled = true; btn.innerText = "⏳ Extracting Text...";
-            output.innerText = "Step 1: Extracting text from PDF...";
+            btn.disabled = true; btn.innerText = "⏳ Connecting...";
+            output.innerText = "Step 1: Uploading & Extracting...";
 
             try {
-                // STEP 1: Connect & Upload File to get Text
-                const app = await client("CodeByDiablo/Resume-Screener");
-                const parseResult = await app.predict("/process_upload", [file]); 
+                // CONNECT DIRECTLY
+                const app = await client(RESUME_API);
+
+                // STEP 1: Upload & Extract
+                // Note: We use the file directly. The client handles the upload logic.
+                const parseResult = await app.predict("/process_upload", [fileInput.files[0]]); 
                 const resumeText = parseResult.data[0];
                 
-                // Store text for other buttons
                 document.getElementById("hidden-resume-text").innerText = resumeText;
 
-                // STEP 2: Send Text + JD to Analysis Engine
-                btn.innerText = "⏳ Analyzing with Llama 3...";
-                output.innerText = "Step 2: Reasoning about candidate experience...";
-                
+                // STEP 2: Analyze
+                output.innerText = "Step 2: Analyzing with Llama 3...";
                 const analyzeResult = await app.predict("/analyze_resume", [
-                    resumeText, // The STRING we extracted
+                    resumeText, 
                     jd, 
                     true, 
                     0.5
                 ]);
                 output.innerText = analyzeResult.data[0];
 
-            } catch (e) { output.innerText = "Error: " + e.message; }
+            } catch (e) { 
+                console.error(e);
+                output.innerText = "❌ Connection Error: " + e.message + "\n(Check Console for details)";
+            }
             
             btn.disabled = false; btn.innerText = "🔍 Analyze Candidate";
         };
@@ -151,16 +159,12 @@
             const jd = document.getElementById("job-desc").value;
             const resumeText = document.getElementById("hidden-resume-text").innerText;
 
-            if(!resumeText) { alert("Please click 'Analyze Candidate' first to process the PDF!"); return; }
+            if(!resumeText) { alert("Analyze the resume first!"); return; }
             
-            output.innerText = "✍️ Drafting cover letter...";
+            output.innerText = "✍️ Generating...";
             try {
-                const app = await client("CodeByDiablo/Resume-Screener");
-                const result = await app.predict("/generate_cover_letter", [
-                    resumeText, 
-                    jd, 
-                    0.5
-                ]);
+                const app = await client(RESUME_API);
+                const result = await app.predict("/generate_cover_letter", [resumeText, jd, 0.5]);
                 output.innerText = result.data[0];
             } catch (e) { output.innerText = "Error: " + e.message; }
         };
@@ -169,13 +173,10 @@
             const output = document.getElementById("resume-output");
             const jd = document.getElementById("job-desc").value;
             
-            output.innerText = "❓ Generating questions...";
+            output.innerText = "❓ Generating...";
             try {
-                const app = await client("CodeByDiablo/Resume-Screener");
-                const result = await app.predict("/get_questions", [
-                    jd, 
-                    0.5
-                ]);
+                const app = await client(RESUME_API);
+                const result = await app.predict("/get_questions", [jd, 0.5]);
                 output.innerText = result.data[0];
             } catch (e) { output.innerText = "Error: " + e.message; }
         };
@@ -191,9 +192,9 @@
             btn.disabled = true; btn.innerText = "Indexing...";
             
             try {
-                const app = await client("CodeByDiablo/RAG-Agent");
+                const app = await client(RAG_API);
                 
-                // FIX: Convert FileList to Array
+                // IMPORTANT: RAG expects an Array of files
                 const fileArray = Array.from(fileInput.files);
                 
                 const result = await app.predict("/upload_knowledge", [fileArray]);
@@ -215,15 +216,13 @@
             
             if(!q) return;
 
-            // Add User Message
             historyDiv.innerHTML += `<div style="margin: 10px 0; text-align: right;"><span style="background:#007bff; padding:5px 10px; border-radius:10px;">${q}</span></div>`;
             queryInput.value = "";
             
             try {
-                const app = await client("CodeByDiablo/RAG-Agent");
+                const app = await client(RAG_API);
                 const result = await app.predict("/chat", [q]);
                 
-                // Add Bot Message
                 historyDiv.innerHTML += `<div style="margin: 10px 0; text-align: left;"><span style="background:#333; padding:8px 12px; border-radius:10px; display:inline-block;">${result.data[0]}</span></div>`;
                 historyDiv.scrollTop = historyDiv.scrollHeight;
             } catch (e) {
@@ -233,3 +232,4 @@
     </script>
 </body>
 </html>
+
