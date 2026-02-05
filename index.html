@@ -3,233 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIC Team 013 | Dual-AI Solutions</title>
+    <title>SIC Team 013 | Capstone Dashboard</title>
+    
+    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/4.16.0/gradio.js"></script>
+    
     <style>
         :root {
-            --primary: #007bff; /* Samsung Blue */
-            --bg: #121212;
-            --card-bg: #1e1e1e;
+            --primary: #007bff;
+            --bg: #0b0f19; /* Deep tech background */
+            --card-bg: #1a1f2e;
             --text: #e0e0e0;
         }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); }
         
         /* Header */
-        header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
-        h1 { margin: 0; color: white; letter-spacing: 1px; }
-        .subtitle { color: #888; font-size: 0.9rem; margin-top: 5px; }
-
-        /* Grid Layout */
-        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
-
-        /* Cards */
-        .card { background: var(--card-bg); padding: 25px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        h2 { color: var(--primary); margin-top: 0; border-bottom: 1px solid #444; padding-bottom: 10px; }
-
-        /* Inputs */
-        label { display: block; margin-top: 15px; font-weight: bold; font-size: 0.9rem; color: #bbb; }
-        input[type="file"], input[type="text"], textarea { 
-            width: 100%; padding: 10px; margin-top: 5px; background: #2d2d2d; 
-            border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; 
+        header { 
+            background: linear-gradient(90deg, #000000 0%, #1a1f2e 100%);
+            padding: 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;
         }
-        textarea { resize: vertical; }
-
-        /* Buttons */
-        button { 
-            width: 100%; margin-top: 15px; padding: 12px; background: var(--primary); 
-            color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; 
+        .logo { font-size: 1.5rem; font-weight: bold; color: white; letter-spacing: 1px; }
+        .tagline { color: var(--primary); font-size: 0.9rem; font-weight: 500; }
+        
+        /* Main Grid */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0; /* Seamless split */
+            height: calc(100vh - 80px); /* Full height minus header */
         }
-        button:hover { background: #0056b3; }
-        button:disabled { background: #555; cursor: not-allowed; }
-
-        /* Outputs */
-        .output-box { 
-            background: #252525; padding: 15px; margin-top: 15px; border-radius: 6px; 
-            border-left: 4px solid var(--primary); min-height: 50px; white-space: pre-wrap; font-size: 0.9rem;
+        
+        .panel {
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #333;
         }
-        .status { font-size: 0.85rem; color: #4caf50; margin-top: 5px; text-align: right; }
+
+        .panel-header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .dashboard-container { grid-template-columns: 1fr; height: auto; }
+            .panel { height: 800px; border-bottom: 5px solid #000; }
+        }
+
+        /* Hides the built-in footer of Gradio apps to make it look native */
+        gradio-app {
+            min-height: 600px;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>SIC CAPSTONE: TEAM 013</h1>
-        <div class="subtitle">Dual-AI Microservices Architecture (Phase 1 Demo)</div>
+        <div>
+            <div class="logo">SIC CAPSTONE: TEAM 013</div>
+            <div style="font-size: 0.8rem; color: #888;">Samsung Innovation Campus • Batch 25-26</div>
+        </div>
+        <div class="tagline">🟢 SYSTEM ONLINE</div>
     </header>
 
-    <div class="container">
+    <div class="dashboard-container">
         
-        <div class="card">
-            <h2>📄 Intelligent Resume Screener</h2>
-            <p style="color:#888; font-size:0.9rem;">Powered by Llama 3.3-70B (Groq)</p>
-
-            <label>1. Upload Resume (PDF):</label>
-            <input type="file" id="resume-file" accept=".pdf" />
-
-            <label>2. Job Description:</label>
-            <textarea id="job-desc" rows="4" placeholder="Paste the JD here...">Software Engineer</textarea>
-
-            <button onclick="analyzeResume()" id="btn-analyze">🔍 Analyze Candidate</button>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button onclick="generateCoverLetter()" style="background:#444;">✍️ Cover Letter</button>
-                <button onclick="generateQuestions()" style="background:#444;">❓ Interview Qs</button>
+        <div class="panel">
+            <div class="panel-header">
+                <span>📄 INTELLIGENT RESUME SCREENER</span>
             </div>
-
-            <div id="hidden-resume-text" style="display:none;"></div>
-
-            <div id="resume-output" class="output-box">Analysis results will appear here...</div>
+            <gradio-app src="https://codebydiablo-resume-screener.hf.space" theme_mode="dark"></gradio-app>
         </div>
 
-        <div class="card">
-            <h2>🤖 AI Research Agent</h2>
-            <p style="color:#888; font-size:0.9rem;">Powered by LangChain & FAISS</p>
-
-            <label>1. Build Knowledge Base:</label>
-            <input type="file" id="rag-files" multiple accept=".pdf" />
-            <button onclick="uploadRagFiles()" id="btn-upload">⚡ Index Documents</button>
-            <div id="rag-status" class="status">System Ready</div>
-
-            <hr style="border: 0; border-top: 1px solid #444; margin: 20px 0;">
-
-            <label>2. Chat with Documents:</label>
-            <div id="chat-history" class="output-box" style="height: 200px; overflow-y: auto; border-left: 4px solid #666;">
-                <div style="color: #666; font-style: italic;">Chat history...</div>
+        <div class="panel">
+            <div class="panel-header">
+                <span>🤖 AI RESEARCH AGENT</span>
             </div>
-            
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="rag-query" placeholder="Ask a question..." />
-                <button onclick="askRag()" style="width: auto; margin-top: 5px;">Send</button>
-            </div>
+            <gradio-app src="https://codebydiablo-rag-agent.hf.space" theme_mode="dark"></gradio-app>
         </div>
 
     </div>
 
-    <script type="module">
-        import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client@0.1.4/dist/index.min.js";
-
-        // --- DIRECT SERVER LINKS (The Fix) ---
-        // We use the direct .hf.space links to bypass redirect/login issues
-        const RESUME_API = "https://codebydiablo-resume-screener.hf.space/";
-        const RAG_API    = "https://codebydiablo-rag-agent.hf.space/";
-
-        // --- RESUME SCREENER LOGIC ---
-        window.analyzeResume = async function() {
-            const btn = document.getElementById("btn-analyze");
-            const output = document.getElementById("resume-output");
-            const fileInput = document.getElementById("resume-file");
-            const jd = document.getElementById("job-desc").value;
-
-            if(fileInput.files.length === 0) { alert("Upload a resume first!"); return; }
-            
-            btn.disabled = true; btn.innerText = "⏳ Connecting...";
-            output.innerText = "Step 1: Uploading & Extracting...";
-
-            try {
-                // CONNECT DIRECTLY
-                const app = await client(RESUME_API);
-
-                // STEP 1: Upload & Extract
-                // Note: We use the file directly. The client handles the upload logic.
-                const parseResult = await app.predict("/process_upload", [fileInput.files[0]]); 
-                const resumeText = parseResult.data[0];
-                
-                document.getElementById("hidden-resume-text").innerText = resumeText;
-
-                // STEP 2: Analyze
-                output.innerText = "Step 2: Analyzing with Llama 3...";
-                const analyzeResult = await app.predict("/analyze_resume", [
-                    resumeText, 
-                    jd, 
-                    true, 
-                    0.5
-                ]);
-                output.innerText = analyzeResult.data[0];
-
-            } catch (e) { 
-                console.error(e);
-                output.innerText = "❌ Connection Error: " + e.message + "\n(Check Console for details)";
-            }
-            
-            btn.disabled = false; btn.innerText = "🔍 Analyze Candidate";
-        };
-
-        window.generateCoverLetter = async function() {
-            const output = document.getElementById("resume-output");
-            const jd = document.getElementById("job-desc").value;
-            const resumeText = document.getElementById("hidden-resume-text").innerText;
-
-            if(!resumeText) { alert("Analyze the resume first!"); return; }
-            
-            output.innerText = "✍️ Generating...";
-            try {
-                const app = await client(RESUME_API);
-                const result = await app.predict("/generate_cover_letter", [resumeText, jd, 0.5]);
-                output.innerText = result.data[0];
-            } catch (e) { output.innerText = "Error: " + e.message; }
-        };
-
-        window.generateQuestions = async function() {
-            const output = document.getElementById("resume-output");
-            const jd = document.getElementById("job-desc").value;
-            
-            output.innerText = "❓ Generating...";
-            try {
-                const app = await client(RESUME_API);
-                const result = await app.predict("/get_questions", [jd, 0.5]);
-                output.innerText = result.data[0];
-            } catch (e) { output.innerText = "Error: " + e.message; }
-        };
-
-        // --- RAG AGENT LOGIC ---
-        window.uploadRagFiles = async function() {
-            const btn = document.getElementById("btn-upload");
-            const status = document.getElementById("rag-status");
-            const fileInput = document.getElementById("rag-files");
-
-            if(fileInput.files.length === 0) { alert("Select PDFs!"); return; }
-
-            btn.disabled = true; btn.innerText = "Indexing...";
-            
-            try {
-                const app = await client(RAG_API);
-                
-                // IMPORTANT: RAG expects an Array of files
-                const fileArray = Array.from(fileInput.files);
-                
-                const result = await app.predict("/upload_knowledge", [fileArray]);
-                
-                status.innerText = result.data[0];
-                status.style.color = "#4caf50";
-            } catch (e) { 
-                console.error(e);
-                status.innerText = "Error: " + e.message; 
-                status.style.color = "red";
-            }
-            btn.disabled = false; btn.innerText = "⚡ Index Documents";
-        };
-
-        window.askRag = async function() {
-            const queryInput = document.getElementById("rag-query");
-            const historyDiv = document.getElementById("chat-history");
-            const q = queryInput.value;
-            
-            if(!q) return;
-
-            historyDiv.innerHTML += `<div style="margin: 10px 0; text-align: right;"><span style="background:#007bff; padding:5px 10px; border-radius:10px;">${q}</span></div>`;
-            queryInput.value = "";
-            
-            try {
-                const app = await client(RAG_API);
-                const result = await app.predict("/chat", [q]);
-                
-                historyDiv.innerHTML += `<div style="margin: 10px 0; text-align: left;"><span style="background:#333; padding:8px 12px; border-radius:10px; display:inline-block;">${result.data[0]}</span></div>`;
-                historyDiv.scrollTop = historyDiv.scrollHeight;
-            } catch (e) {
-                historyDiv.innerHTML += `<div style="color:red;">Error: ${e.message}</div>`;
-            }
-        };
-    </script>
 </body>
 </html>
-
